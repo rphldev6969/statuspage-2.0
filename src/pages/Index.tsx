@@ -58,6 +58,9 @@ const Index = () => {
     );
   }
 
+  // Filter out the Website component to prevent duplication
+  const filteredComponents = components.filter(component => component.name !== "Website");
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <NavBar />
@@ -85,24 +88,17 @@ const Index = () => {
         {/* Components status section */}
         <section className="pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {components.map((component) => {
-              // Skip the Website component as we'll replace it with Methods
-              if (component.name === "Website") {
-                return null;
-              }
-              
-              return (
-                <div
-                  key={component.id}
-                  className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">{component.name}</h3>
-                    <StatusIndicator status={component.status} />
-                  </div>
+            {filteredComponents.map((component) => (
+              <div
+                key={component.id}
+                className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="font-medium">{component.name}</h3>
+                  <StatusIndicator status={component.status} />
                 </div>
-              );
-            })}
+              </div>
+            ))}
             
             {/* Add a single Methods Expander Component */}
             <MethodsExpander />
