@@ -104,7 +104,7 @@ const Index = () => {
               );
             })}
             
-            {/* Add Methods Expander Component */}
+            {/* Add a single Methods Expander Component */}
             <MethodsExpander />
           </div>
         </section>
