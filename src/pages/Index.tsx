@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import StatusIndicator from '@/components/StatusIndicator';
 import IncidentHistory from '@/components/IncidentHistory';
 import NavBar from '@/components/NavBar';
+import MethodsExpander from '@/components/MethodsExpander';
 import { 
   SystemComponent, 
   Incident, 
@@ -84,17 +85,27 @@ const Index = () => {
         {/* Components status section */}
         <section className="pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {components.map((component) => (
-              <div
-                key={component.id}
-                className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium">{component.name}</h3>
-                  <StatusIndicator status={component.status} />
+            {components.map((component) => {
+              // Skip the Website component as we'll replace it with Methods
+              if (component.name === "Website") {
+                return null;
+              }
+              
+              return (
+                <div
+                  key={component.id}
+                  className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium">{component.name}</h3>
+                    <StatusIndicator status={component.status} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+            
+            {/* Add Methods Expander Component */}
+            <MethodsExpander />
           </div>
         </section>
         
