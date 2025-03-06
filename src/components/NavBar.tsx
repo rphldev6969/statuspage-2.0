@@ -33,7 +33,7 @@ const NavBar: React.FC = () => {
                   location.pathname === '/dashboard' ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
-                Dashboard
+                Merchant Panel
               </Link>
             )}
           </nav>

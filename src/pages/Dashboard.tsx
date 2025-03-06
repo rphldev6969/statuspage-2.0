@@ -22,6 +22,7 @@ import {
   initialIncidents, 
   getOverallStatus 
 } from '@/utils/mockData';
+import MethodsExpander from '@/components/MethodsExpander';
 
 const Dashboard = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -117,7 +118,7 @@ const Dashboard = () => {
       
       <main className="flex-1 container py-8 animate-fade-in">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold">Merchant Panel</h1>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Current Status:</span>
             <StatusIndicator status={overallStatus} showText />
@@ -133,17 +134,27 @@ const Dashboard = () => {
           
           <TabsContent value="overview" className="space-y-8 animate-fade-in">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {components.map((component) => (
-                <div
-                  key={component.id}
-                  className="glass-panel p-4 rounded-lg"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">{component.name}</h3>
-                    <StatusIndicator status={component.status} />
+              {components.map((component) => {
+                // Special treatment for Website component
+                if (component.name === "Website") {
+                  return null; // Skip the Website component as we'll replace it with Methods
+                }
+                
+                return (
+                  <div
+                    key={component.id}
+                    className="glass-panel p-4 rounded-lg"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium">{component.name}</h3>
+                      <StatusIndicator status={component.status} />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+              
+              {/* Add Methods Expander Component */}
+              <MethodsExpander />
             </div>
             
             <IncidentHistory incidents={incidents} />

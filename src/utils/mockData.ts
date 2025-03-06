@@ -42,7 +42,7 @@ export const initialComponents: SystemComponent[] = [
   },
   {
     id: '3',
-    name: 'Website',
+    name: 'Methods',
     status: 'operational',
     updatedAt: new Date().toISOString(),
   },
