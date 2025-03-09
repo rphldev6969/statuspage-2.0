@@ -1,34 +1,67 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { StatusType, getStatusColor, getStatusText } from '@/utils/mockData';
+import { StatusType } from '@/utils/mockData';
 
 interface StatusIndicatorProps {
   status: StatusType;
-  showText?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  showText?: boolean;
   className?: string;
 }
 
-const StatusIndicator: React.FC<StatusIndicatorProps> = ({
-  status,
+const StatusIndicator = ({ 
+  status, 
+  size = 'md', 
   showText = false,
-  size = 'md',
-  className,
-}) => {
-  const sizeClasses = {
-    sm: 'h-2 w-2',
-    md: 'h-2.5 w-2.5',
-    lg: 'h-3 w-3',
+  className 
+}: StatusIndicatorProps) => {
+  const getStatusColor = (status: StatusType) => {
+    switch (status) {
+      case 'operational':
+        return 'bg-green-500';
+      case 'degraded':
+        return 'bg-yellow-500';
+      case 'outage':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = (status: StatusType) => {
+    switch (status) {
+      case 'operational':
+        return 'Operational';
+      case 'degraded':
+        return 'Degraded Performance';
+      case 'outage':
+        return 'Major Outage';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getSizeClass = (size: 'sm' | 'md' | 'lg') => {
+    switch (size) {
+      case 'sm':
+        return 'w-2 h-2';
+      case 'md':
+        return 'w-3 h-3';
+      case 'lg':
+        return 'w-4 h-4';
+      default:
+        return 'w-3 h-3';
+    }
   };
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <span
+    <div className="flex items-center gap-2">
+      <span 
         className={cn(
-          'status-indicator',
+          "rounded-full",
           getStatusColor(status),
-          sizeClasses[size]
+          getSizeClass(size),
+          className
         )}
       />
       {showText && (

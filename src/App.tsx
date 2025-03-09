@@ -1,34 +1,38 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
+import { AuthProvider } from '@/context/AuthContext';
+import { helmetConfig } from '@/config/helmet';
+import Dashboard from '@/pages/Dashboard';
+import PublicOverview from '@/pages/PublicOverview';
+import Login from '@/pages/Login';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import MerchantPanel from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+const App = () => {
+  return (
+    <HelmetProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <Helmet {...helmetConfig}>
+          <title>Status Page</title>
+          <meta name="description" content="Status page para monitoramento de serviços em tempo real" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <link rel="icon" href="/favicon.ico" />
+        </Helmet>
+        <Router>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<PublicOverview />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<MerchantPanel />} />
-            <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
+        </Router>
+        <Toaster 
+          position="top-right"
+          expand={false}
+          richColors
+          closeButton
+        />
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </HelmetProvider>
+  );
+};
 
 export default App;

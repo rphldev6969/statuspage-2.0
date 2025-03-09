@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import StatusIndicator from '@/components/StatusIndicator';
@@ -40,9 +39,6 @@ const Index = () => {
   }, []);
 
   const overallStatus = getOverallStatus(components);
-  const lastUpdated = components.length > 0 
-    ? new Date(Math.max(...components.map(c => new Date(c.updatedAt).getTime())))
-    : new Date();
 
   if (loading) {
     return (
@@ -58,8 +54,12 @@ const Index = () => {
     );
   }
 
-  // Filter out the Website component to prevent duplication
-  const filteredComponents = components.filter(component => component.name !== "Website");
+  // Filter out the Website component and Authentication to prevent duplication
+  const filteredComponents = components.filter(component => 
+    component.name !== "Website" && 
+    component.name !== "Authentication" &&
+    component.name !== "Methods"
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -67,15 +67,7 @@ const Index = () => {
       
       <main className="flex-1 container py-8 space-y-12 animate-fade-in">
         {/* Header section */}
-        <section className="text-center space-y-6">
-          <div className="inline-flex justify-center items-center gap-2 bg-white/30 backdrop-blur-sm px-3 py-1 rounded-full text-sm border border-border">
-            <span className="font-medium">Status</span>
-            <span className="text-muted-foreground text-xs">•</span>
-            <span className="text-xs text-muted-foreground">
-              Last checked {formatDistanceToNow(new Date(lastUpdated))} ago
-            </span>
-          </div>
-          
+        <section className="text-center space-y-6">          
           <h1 className="text-4xl font-bold animate-slide-up">
             System Status
           </h1>
@@ -87,7 +79,7 @@ const Index = () => {
         
         {/* Components status section */}
         <section className="pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {filteredComponents.map((component) => (
               <div
                 key={component.id}
@@ -99,8 +91,6 @@ const Index = () => {
                 </div>
               </div>
             ))}
-            
-            {/* Add a single Methods Expander Component */}
             <MethodsExpander />
           </div>
         </section>

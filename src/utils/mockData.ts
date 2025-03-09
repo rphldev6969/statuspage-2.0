@@ -1,4 +1,3 @@
-
 export type StatusType = 'operational' | 'degraded' | 'outage';
 
 export interface SystemComponent {
@@ -16,6 +15,11 @@ export interface Incident {
   createdAt: string;
   updatedAt: string;
   affectedComponents: string[];
+  componentStatuses?: Record<string, StatusType>;
+  methodsAffected?: {
+    payin?: string[];
+    payout?: string[];
+  };
   updates: IncidentUpdate[];
 }
 
@@ -36,19 +40,7 @@ export const initialComponents: SystemComponent[] = [
   },
   {
     id: '2',
-    name: 'Dashboard',
-    status: 'operational',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Methods',
-    status: 'operational',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    name: 'Authentication',
+    name: 'Agent Panel',
     status: 'operational',
     updatedAt: new Date().toISOString(),
   },
@@ -58,6 +50,12 @@ export const initialComponents: SystemComponent[] = [
     status: 'operational',
     updatedAt: new Date().toISOString(),
   },
+  {
+    id: '3',
+    name: 'Methods',
+    status: 'operational',
+    updatedAt: new Date().toISOString(),
+  }
 ];
 
 // Mock incidents

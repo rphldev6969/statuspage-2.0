@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -17,48 +16,32 @@ import { useAuth } from '@/context/AuthContext';
 import NavBar from '@/components/NavBar';
 
 const Login = () => {
+  const { isAuthenticated, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { login, isAuthenticated } = useAuth();
-  const { toast } = useToast();
+  const [error, setError] = useState('');
+  const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Se já estiver autenticado, redireciona para o dashboard
+  if (isAuthenticated) {
+    const from = location.state?.from || '/dashboard';
+    return <Navigate to={from} replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoggingIn(true);
-    
+    setError('');
+
     try {
-      const success = await login(email, password);
-      
-      if (success) {
-        toast({
-          title: "Login successful",
-          description: "Welcome to the admin dashboard.",
-        });
-        navigate('/dashboard');
-      } else {
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Login error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoggingIn(false);
+      await login(email, password);
+      const from = location.state?.from || '/dashboard';
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError('Email ou senha inválidos');
     }
   };
-
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -75,6 +58,11 @@ const Login = () => {
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
+                {error && (
+                  <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md mb-4">
+                    {error}
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -108,9 +96,8 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoggingIn}
                 >
-                  {isLoggingIn ? 'Logging in...' : 'Login'}
+                  Entrar
                 </Button>
               </CardFooter>
             </form>
