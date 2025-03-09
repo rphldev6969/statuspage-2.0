@@ -54,13 +54,6 @@ const Index = () => {
     );
   }
 
-  // Filter out the Website component and Authentication to prevent duplication
-  const filteredComponents = components.filter(component => 
-    component.name !== "Website" && 
-    component.name !== "Authentication" &&
-    component.name !== "Methods"
-  );
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <NavBar />
@@ -80,18 +73,86 @@ const Index = () => {
         {/* Components status section */}
         <section className="pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <div className="grid gap-6 md:grid-cols-3">
-            {filteredComponents.map((component) => (
-              <div
-                key={component.id}
-                className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium">{component.name}</h3>
-                  <StatusIndicator status={component.status} />
+            {components
+              .filter(component => 
+                component.visible && 
+                !['Methods', 'Website', 'Authentication'].includes(component.name)
+              )
+              .sort((a, b) => a.order - b.order)
+              .map((component) => (
+                <div
+                  key={component.id}
+                  className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium">{component.name}</h3>
+                    <StatusIndicator status={component.status} />
+                  </div>
                 </div>
-              </div>
-            ))}
-            <MethodsExpander />
+              ))}
+            <MethodsExpander 
+              payinStatus={(() => {
+                const hasOutage = incidents.some(i => 
+                  i.status !== 'resolved' && 
+                  i.affected_components?.some(ac => 
+                    ac.component_id === '3' && 
+                    ac.status === 'outage'
+                  ) &&
+                  i.methods_affected?.some(m => m.type === 'payin')
+                );
+                const hasIssue = incidents.some(i => 
+                  i.status !== 'resolved' && 
+                  i.methods_affected?.some(m => m.type === 'payin')
+                );
+                return hasOutage ? 'outage' : hasIssue ? 'degraded' : 'operational';
+              })()}
+              payoutStatus={(() => {
+                const hasOutage = incidents.some(i => 
+                  i.status !== 'resolved' && 
+                  i.affected_components?.some(ac => 
+                    ac.component_id === '3' && 
+                    ac.status === 'outage'
+                  ) &&
+                  i.methods_affected?.some(m => m.type === 'payout')
+                );
+                const hasIssue = incidents.some(i => 
+                  i.status !== 'resolved' && 
+                  i.methods_affected?.some(m => m.type === 'payout')
+                );
+                return hasOutage ? 'outage' : hasIssue ? 'degraded' : 'operational';
+              })()}
+              components={components}
+              countryStatuses={{
+                payin: incidents.reduce((acc, incident) => {
+                  if (incident.status !== 'resolved') {
+                    incident.methods_affected
+                      ?.filter(m => m.type === 'payin')
+                      .forEach(method => {
+                        const isOutage = incident.affected_components?.some(ac => 
+                          ac.component_id === '3' && 
+                          ac.status === 'outage'
+                        );
+                        acc[method.country_code] = isOutage ? 'outage' : 'degraded';
+                      });
+                  }
+                  return acc;
+                }, {} as Record<string, StatusType>),
+                payout: incidents.reduce((acc, incident) => {
+                  if (incident.status !== 'resolved') {
+                    incident.methods_affected
+                      ?.filter(m => m.type === 'payout')
+                      .forEach(method => {
+                        const isOutage = incident.affected_components?.some(ac => 
+                          ac.component_id === '3' && 
+                          ac.status === 'outage'
+                        );
+                        acc[method.country_code] = isOutage ? 'outage' : 'degraded';
+                      });
+                  }
+                  return acc;
+                }, {} as Record<string, StatusType>)
+              }}
+            />
           </div>
         </section>
         

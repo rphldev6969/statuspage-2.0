@@ -3,7 +3,7 @@ node_modules
 .pnp
 .pnp.js
 
-# Ambiente de desenvolvimento
+# Ambiente
 .env
 .env.local
 .env.development.local
@@ -38,5 +38,8 @@ lerna-debug.log*
 # Testes
 coverage
 
-# PWA
-dev-dist
+# Supabase
+.supabase
+**/supabase/.branches
+**/supabase/.temp
+**/supabase/.env

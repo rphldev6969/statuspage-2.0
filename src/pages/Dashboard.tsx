@@ -19,6 +19,17 @@ import { useIncidents } from '@/hooks/useIncidents';
 import { useMaintenance } from '@/hooks/useMaintenance';
 import ComponentForm from '@/components/ComponentForm';
 import { supabase } from '@/lib/supabase';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Edit2, Trash2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ComponentUpdate {
   id: string;
@@ -133,34 +144,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleSubmit = async (data: {
-    name: string;
-    description: string;
-    group: string;
-    visible: boolean;
-  }) => {
-    try {
-      const { error } = await supabase.from('components').insert([
-        {
-          name: data.name,
-          description: data.description,
-          group: data.group,
-          status: 'operational',
-          visible: data.visible
-        }
-      ]);
-
-      if (error) throw error;
-
-      toast.success('Componente criado com sucesso!');
-      setShowCreateModal(false);
-      fetchComponents();
-    } catch (error) {
-      console.error('Erro ao criar componente:', error);
-      toast.error('Erro ao criar componente');
-    }
-  };
-
   // Se estiver carregando, não mostra nada ainda
   if (isLoading || componentsLoading || incidentsLoading || maintenanceLoading) {
     return null;
@@ -212,22 +195,23 @@ const Dashboard = () => {
 
             <section className="pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <div className="grid gap-6 md:grid-cols-3">
-                {components.filter(component => 
-                  ['API', 'Database', 'Merchant Panel'].includes(component.name)
-                ).sort((a, b) => {
-                  const order = ['API', 'Database', 'Merchant Panel'];
-                  return order.indexOf(a.name) - order.indexOf(b.name);
-                }).map((component) => (
-                  <div
-                    key={component.id}
-                    className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
-                  >
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-medium">{component.name}</h3>
-                      <StatusIndicator status={component.status} />
+                {components
+                  .filter(component => 
+                    component.visible && 
+                    component.name !== 'Methods'
+                  )
+                  .sort((a, b) => a.order - b.order)
+                  .map((component) => (
+                    <div
+                      key={component.id}
+                      className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-medium">{component.name}</h3>
+                        <StatusIndicator status={component.status} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 <MethodsExpander 
                   payinStatus={(() => {
                     const hasOutage = incidents.some(i => 
@@ -259,35 +243,34 @@ const Dashboard = () => {
                     );
                     return hasOutage ? 'outage' : hasIssue ? 'degraded' : 'operational';
                   })()}
+                  components={components}
                   countryStatuses={{
-                    payin: incidents.reduce((acc, incident) => {
-                      if (incident.status !== 'resolved') {
+                    payin: incidents
+                      .filter(i => i.status !== 'resolved')
+                      .reduce((acc, incident) => {
                         incident.methods_affected
                           .filter(m => m.type === 'payin')
-                          .forEach(method => {
-                            const isOutage = incident.affected_components.some(ac => 
-                              ac.component_id === '3' && 
-                              ac.status === 'outage'
-                            );
-                            acc[method.country_code] = isOutage ? 'outage' : 'degraded';
+                          .forEach(m => {
+                            // Se já existe um status mais grave, mantém
+                            if (acc[m.country_code] === 'outage') return;
+                            if (acc[m.country_code] === 'degraded' && m.status !== 'outage') return;
+                            acc[m.country_code] = m.status;
                           });
-                      }
-                      return acc;
-                    }, {} as Record<string, StatusType>),
-                    payout: incidents.reduce((acc, incident) => {
-                      if (incident.status !== 'resolved') {
+                        return acc;
+                      }, {} as Record<string, StatusType>),
+                    payout: incidents
+                      .filter(i => i.status !== 'resolved')
+                      .reduce((acc, incident) => {
                         incident.methods_affected
                           .filter(m => m.type === 'payout')
-                          .forEach(method => {
-                            const isOutage = incident.affected_components.some(ac => 
-                              ac.component_id === '3' && 
-                              ac.status === 'outage'
-                            );
-                            acc[method.country_code] = isOutage ? 'outage' : 'degraded';
+                          .forEach(m => {
+                            // Se já existe um status mais grave, mantém
+                            if (acc[m.country_code] === 'outage') return;
+                            if (acc[m.country_code] === 'degraded' && m.status !== 'outage') return;
+                            acc[m.country_code] = m.status;
                           });
-                      }
-                      return acc;
-                    }, {} as Record<string, StatusType>)
+                        return acc;
+                      }, {} as Record<string, StatusType>)
                   }}
                 />
               </div>
@@ -322,11 +305,7 @@ const Dashboard = () => {
                     createdAt: update.created_at
                   }))
                 }))}
-                components={components.map(component => ({
-                  id: component.id,
-                  name: component.name,
-                  status: component.status
-                }))}
+                components={components}
                 onUpdateIncident={handleUpdateIncident}
               />
             </section>
@@ -335,43 +314,53 @@ const Dashboard = () => {
           <TabsContent value="incidents" className="animate-fade-in">
             <IncidentForm 
               components={components.map(component => ({
-                id: component.id,
-                name: component.name,
-                status: component.status
+                ...component,
+                description: component.description || '',
+                group: component.group || '',
+                order: component.order || 0,
+                visible: component.visible !== false,
+                payinCountries: component.payinCountries || [],
+                payoutCountries: component.payoutCountries || []
               }))}
               onCreateIncident={handleCreateIncident} 
             />
           </TabsContent>
 
           <TabsContent value="components" className="animate-fade-in">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <ComponentForm 
-                  components={components}
-                  onCreateComponent={createComponent}
-                  onUpdateComponent={updateComponent}
-                  onDeleteComponent={deleteComponent}
-                  editingComponent={editingComponent}
-                />
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Gerenciar Componentes</h2>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Novo Componente
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Novo Componente</DialogTitle>
+                      <DialogDescription>
+                        Adicione um novo componente à página de status
+                      </DialogDescription>
+                    </DialogHeader>
+                    <ComponentForm 
+                      components={components}
+                      onCreateComponent={createComponent}
+                    />
+                  </DialogContent>
+                </Dialog>
               </div>
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Current Components</h2>
-                <div className="space-y-4">
-                  {components
-                    .sort((a, b) => a.order - b.order)
-                    .map((component) => (
+
+              <div className="grid gap-4">
+                {components
+                  .sort((a, b) => a.order - b.order)
+                  .map((component) => (
                     <div
                       key={component.id}
-                      className="glass-panel p-4 rounded-lg transition-all hover:shadow-md cursor-pointer"
-                      onClick={() => setEditingComponent({
-                        id: component.id,
-                        name: component.name,
-                        description: component.description,
-                        group: component.group,
-                        visible: component.visible
-                      })}
+                      className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
                     >
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="font-medium">{component.name}</h3>
@@ -380,12 +369,79 @@ const Dashboard = () => {
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">{component.description}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
+                              {component.group}
+                            </span>
+                            <StatusIndicator status={component.status} />
+                          </div>
                         </div>
-                        <StatusIndicator status={component.status} />
+                        <div className="flex items-center gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="icon">
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[500px]">
+                              <DialogHeader>
+                                <DialogTitle>Editar Componente</DialogTitle>
+                                <DialogDescription>
+                                  Atualize os detalhes do componente
+                                </DialogDescription>
+                              </DialogHeader>
+                              <ComponentForm 
+                                components={components}
+                                onCreateComponent={createComponent}
+                                onUpdateComponent={updateComponent}
+                                onDeleteComponent={deleteComponent}
+                                editingComponent={{
+                                  id: component.id,
+                                  name: component.name,
+                                  description: component.description,
+                                  group: component.group,
+                                  visible: component.visible
+                                }}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="destructive" size="icon">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Excluir Componente</DialogTitle>
+                                <DialogDescription>
+                                  Tem certeza que deseja excluir este componente? Esta ação não pode ser desfeita.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="flex justify-end gap-2 mt-4">
+                                <DialogClose asChild>
+                                  <Button variant="outline">Cancelar</Button>
+                                </DialogClose>
+                                <Button 
+                                  variant="destructive"
+                                  onClick={() => {
+                                    deleteComponent(component.id);
+                                    const closeButton = document.querySelector('[aria-label="Fechar"]');
+                                    if (closeButton instanceof HTMLElement) {
+                                      closeButton.click();
+                                    }
+                                  }}
+                                >
+                                  Excluir
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </div>
                     </div>
                   ))}
-                </div>
               </div>
             </div>
           </TabsContent>

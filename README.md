@@ -1,41 +1,35 @@
-# Status Page 2.0
+# Status Page
 
-Uma página de status moderna e responsiva para monitoramento de serviços em tempo real.
+Uma página de status moderna e responsiva construída com React, TypeScript e Supabase.
 
-## Características
+## 🚀 Funcionalidades
 
-- 🚦 Monitoramento em tempo real
-- 🔐 Autenticação segura
-- 📱 Design responsivo
-- 🌐 PWA (Progressive Web App)
-- 🔄 Atualizações automáticas
-- 📊 Histórico de incidentes
-- 🌍 Suporte a múltiplos países
-- 📨 Sistema de notificações
+- 📊 Dashboard administrativo para gerenciamento de componentes e incidentes
+- 🔒 Autenticação segura com Supabase
+- 🌍 Suporte a múltiplos países para Payin e Payout
+- 📱 Design responsivo e moderno com Shadcn/UI
+- 🔄 Atualizações em tempo real do status dos componentes
+- 📝 Histórico detalhado de incidentes
+- 🎨 Interface intuitiva e amigável
 
-## Tecnologias
+## 🛠️ Tecnologias Utilizadas
 
 - React 18
 - TypeScript
 - Vite
 - Supabase
-- Tailwind CSS
-- Shadcn/ui
-- React Router
-- PWA
+- Shadcn/UI
+- TailwindCSS
+- React Router DOM
+- Date-fns
+- Lucide Icons
 
-## Pré-requisitos
-
-- Node.js 18+
-- npm ou yarn
-- Conta no Supabase
-
-## Configuração
+## 📦 Instalação
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/statuspage-2.0.git
-cd statuspage-2.0
+git clone https://github.com/seu-usuario/status-page.git
+cd status-page
 ```
 
 2. Instale as dependências:
@@ -49,37 +43,33 @@ cp .env.example .env
 ```
 Edite o arquivo `.env` com suas credenciais do Supabase.
 
-4. Inicie o servidor de desenvolvimento:
+4. Execute o projeto:
 ```bash
 npm run dev
 ```
 
-## Scripts
+## 🗄️ Estrutura do Banco de Dados
 
-- `npm run dev` - Inicia o servidor de desenvolvimento
-- `npm run build` - Cria a build de produção
-- `npm run preview` - Visualiza a build de produção localmente
+O projeto utiliza o Supabase como banco de dados e backend. As principais tabelas são:
 
-## Estrutura do Projeto
+- `components`: Armazena os componentes do sistema
+- `incidents`: Registra os incidentes
+- `incident_updates`: Mantém o histórico de atualizações dos incidentes
 
-```
-src/
-  ├── components/     # Componentes React
-  ├── hooks/         # Custom hooks
-  ├── lib/           # Bibliotecas e configurações
-  ├── pages/         # Páginas da aplicação
-  ├── types/         # Definições de tipos TypeScript
-  └── utils/         # Funções utilitárias
-```
+## 🤝 Contribuindo
 
-## Contribuindo
+Contribuições são sempre bem-vindas! Por favor, leia o [guia de contribuição](CONTRIBUTING.md) primeiro.
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## 📝 Licença
 
-## Licença
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## 👥 Autores
+
+- [@seu-usuario](https://github.com/seu-usuario)
+
+## 🙏 Agradecimentos
+
+- [Shadcn/UI](https://ui.shadcn.com/) pela excelente biblioteca de componentes
+- [Supabase](https://supabase.com/) pela plataforma de backend
+- [Vite](https://vitejs.dev/) pelo excelente bundler

@@ -9,29 +9,31 @@ const PublicOverview = () => {
   const { components, loading: componentsLoading, error: componentsError } = useComponents();
   const { incidents = [], loading: incidentsLoading, error: incidentsError } = useIncidents();
 
+  // Estado de carregamento
   if (componentsLoading || incidentsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold mb-4">Carregando...</h2>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <h2 className="text-2xl font-bold">Carregando...</h2>
           <p className="text-muted-foreground">Aguarde enquanto carregamos as informações</p>
         </div>
       </div>
     );
   }
 
+  // Estado de erro
   if (componentsError || incidentsError) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4 text-destructive">Erro ao carregar</h2>
+        <div className="text-center max-w-lg mx-auto p-8">
+          <h2 className="text-2xl font-bold mb-4">Erro ao carregar dados</h2>
           <p className="text-muted-foreground mb-4">
             {componentsError?.message || incidentsError?.message || 'Ocorreu um erro ao carregar as informações'}
           </p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="text-sm text-primary hover:underline"
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
           >
             Tentar novamente
           </button>
@@ -41,6 +43,8 @@ const PublicOverview = () => {
   }
 
   const visibleComponents = components.filter(c => c.visible);
+  
+  // Estado sem componentes
   if (!visibleComponents.length) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -95,87 +99,17 @@ const PublicOverview = () => {
 
         <section className="pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <div className="grid gap-6 md:grid-cols-3">
-            {visibleComponents
-              .filter(component => 
-                ['API', 'Database', 'Merchant Panel'].includes(component.name)
-              )
-              .sort((a, b) => {
-                const order = ['API', 'Database', 'Merchant Panel'];
-                return order.indexOf(a.name) - order.indexOf(b.name);
-              })
-              .map((component) => (
-                <div
-                  key={component.id}
-                  className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">{component.name}</h3>
-                    <StatusIndicator status={component.status} />
-                  </div>
+            {visibleComponents.map((component) => (
+              <div
+                key={component.id}
+                className="glass-panel p-4 rounded-lg transition-all hover:shadow-md"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="font-medium">{component.name}</h3>
+                  <StatusIndicator status={component.status} />
                 </div>
-              ))}
-            <MethodsExpander 
-              payinStatus={(() => {
-                const hasOutage = incidents.some(i => 
-                  i.status !== 'resolved' && 
-                  i.affected_components.some(ac => 
-                    ac.component_id === '3' && 
-                    ac.status === 'outage'
-                  ) &&
-                  i.methods_affected.some(m => m.type === 'payin')
-                );
-                const hasIssue = incidents.some(i => 
-                  i.status !== 'resolved' && 
-                  i.methods_affected.some(m => m.type === 'payin')
-                );
-                return hasOutage ? 'outage' : hasIssue ? 'degraded' : 'operational';
-              })()}
-              payoutStatus={(() => {
-                const hasOutage = incidents.some(i => 
-                  i.status !== 'resolved' && 
-                  i.affected_components.some(ac => 
-                    ac.component_id === '3' && 
-                    ac.status === 'outage'
-                  ) &&
-                  i.methods_affected.some(m => m.type === 'payout')
-                );
-                const hasIssue = incidents.some(i => 
-                  i.status !== 'resolved' && 
-                  i.methods_affected.some(m => m.type === 'payout')
-                );
-                return hasOutage ? 'outage' : hasIssue ? 'degraded' : 'operational';
-              })()}
-              countryStatuses={{
-                payin: incidents.reduce((acc, incident) => {
-                  if (incident.status !== 'resolved') {
-                    incident.methods_affected
-                      .filter(m => m.type === 'payin')
-                      .forEach(method => {
-                        const isOutage = incident.affected_components.some(ac => 
-                          ac.component_id === '3' && 
-                          ac.status === 'outage'
-                        );
-                        acc[method.country_code] = isOutage ? 'outage' : 'degraded';
-                      });
-                  }
-                  return acc;
-                }, {} as Record<string, StatusType>),
-                payout: incidents.reduce((acc, incident) => {
-                  if (incident.status !== 'resolved') {
-                    incident.methods_affected
-                      .filter(m => m.type === 'payout')
-                      .forEach(method => {
-                        const isOutage = incident.affected_components.some(ac => 
-                          ac.component_id === '3' && 
-                          ac.status === 'outage'
-                        );
-                        acc[method.country_code] = isOutage ? 'outage' : 'degraded';
-                      });
-                  }
-                  return acc;
-                }, {} as Record<string, StatusType>)
-              }}
-            />
+              </div>
+            ))}
           </div>
         </section>
 

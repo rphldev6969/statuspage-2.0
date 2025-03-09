@@ -14,6 +14,8 @@ export function useComponents() {
     description: string;
     group: string;
     visible: boolean;
+    payinCountries?: string[];
+    payoutCountries?: string[];
   } | null>(null);
 
   const fetchComponents = async () => {
@@ -55,7 +57,9 @@ export function useComponents() {
         order: component.order || 0,
         visible: component.visible !== false,
         updatedAt: component.updated_at,
-        createdAt: component.created_at
+        createdAt: component.created_at,
+        payinCountries: component.payin_countries || [],
+        payoutCountries: component.payout_countries || []
       }));
 
       setComponents(formattedComponents);
@@ -76,24 +80,36 @@ export function useComponents() {
     group: string;
     order: number;
     visible: boolean;
+    payinCountries?: string[];
+    payoutCountries?: string[];
   }) => {
     try {
       const { data, error } = await supabase
         .from('components')
         .insert([{
-          ...component,
-          status: 'operational' // Status padrão para novos componentes
+          name: component.name,
+          description: component.description,
+          group: component.group,
+          order: component.order,
+          visible: component.visible,
+          status: 'operational',
+          payin_countries: component.payinCountries || [],
+          payout_countries: component.payoutCountries || []
         }])
         .select()
         .single();
 
       if (error) throw error;
 
-      setComponents(prev => [...prev, data]);
-      toast.success('Component created successfully');
+      setComponents(prev => [...prev, {
+        ...data,
+        payinCountries: data.payin_countries || [],
+        payoutCountries: data.payout_countries || []
+      }]);
+      toast.success('Componente criado com sucesso');
     } catch (error) {
       console.error('Error creating component:', error);
-      toast.error('Failed to create component');
+      toast.error('Falha ao criar componente');
       throw error;
     }
   };
@@ -104,11 +120,24 @@ export function useComponents() {
     group?: string;
     status?: StatusType;
     visible?: boolean;
+    payinCountries?: string[];
+    payoutCountries?: string[];
   }) => {
     try {
+      // Primeiro, vamos forçar uma atualização do cache do schema
+      await supabase.rpc('reload_schema_cache');
+
       const { data, error } = await supabase
         .from('components')
-        .update(updates)
+        .update({
+          name: updates.name,
+          description: updates.description,
+          group: updates.group,
+          status: updates.status,
+          visible: updates.visible,
+          payin_countries: updates.payinCountries,
+          payout_countries: updates.payoutCountries
+        })
         .eq('id', id)
         .select()
         .single();
@@ -117,13 +146,19 @@ export function useComponents() {
 
       setComponents(prev =>
         prev.map(comp =>
-          comp.id === id ? { ...comp, ...updates } : comp
+          comp.id === id ? {
+            ...comp,
+            ...updates,
+            payinCountries: updates.payinCountries || comp.payinCountries,
+            payoutCountries: updates.payoutCountries || comp.payoutCountries
+          } : comp
         )
       );
-      toast.success('Component updated successfully');
+      setEditingComponent(null);
+      toast.success('Componente atualizado com sucesso');
     } catch (error) {
       console.error('Error updating component:', error);
-      toast.error('Failed to update component');
+      toast.error('Falha ao atualizar componente');
       throw error;
     }
   };

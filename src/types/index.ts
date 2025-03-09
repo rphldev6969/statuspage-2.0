@@ -12,6 +12,8 @@ export interface SystemComponent {
   visible: boolean;
   updatedAt: string;
   createdAt: string;
+  payinCountries?: string[];
+  payoutCountries?: string[];
 }
 
 export interface IncidentUpdate {

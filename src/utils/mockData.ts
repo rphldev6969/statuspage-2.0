@@ -3,8 +3,15 @@ export type StatusType = 'operational' | 'degraded' | 'outage';
 export interface SystemComponent {
   id: string;
   name: string;
+  description?: string;
   status: StatusType;
+  group?: string;
+  order?: number;
+  visible?: boolean;
   updatedAt: string;
+  createdAt?: string;
+  payinCountries?: string[];
+  payoutCountries?: string[];
 }
 
 export interface Incident {

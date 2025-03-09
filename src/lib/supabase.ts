@@ -4,6 +4,11 @@ import type { Database } from '@/types/supabase';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+console.log('Tentando conectar ao Supabase com:', {
+  url: supabaseUrl,
+  keyLength: supabaseAnonKey?.length || 0
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Erro: Variáveis de ambiente do Supabase não encontradas');
   throw new Error('Configuração do Supabase incompleta');
@@ -24,6 +29,19 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     }
   }
 });
+
+// Teste de conexão inicial
+void supabase.from('components').select('count', { count: 'exact' })
+  .then(({ error }) => {
+    if (error) {
+      console.error('Erro na conexão inicial com o Supabase:', error);
+    } else {
+      console.log('Conexão com o Supabase estabelecida com sucesso!');
+    }
+  })
+  .catch((error: Error) => {
+    console.error('Erro ao tentar conectar com o Supabase:', error);
+  });
 
 // Tipos das tabelas do Supabase
 export type Tables = {
